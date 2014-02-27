@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <unistd.h>
 #include <my_global.h>
@@ -97,14 +98,14 @@ void loop()
 
         //substract msglength with 64, 16 bit address and receive options
         unsigned char payload[msgLength.value - 12];
-        printf("payload length = %d\n", msgLength.value - 12);
+        //printf("payload length = %d\n", msgLength.value - 12);
         for(int i = 0; i < msgLength.value - 12; ++i)
         {
           payload[i] = getByte();
         }
 
         unsigned char msgChecksum = getByte(false);
-        printf("calculated checksum = 0x%X / msg checksum = 0x%X\n", 0xFF - checksum, msgChecksum);
+        //printf("calculated checksum = 0x%X / msg checksum = 0x%X\n", 0xFF - checksum, msgChecksum);
         if(0xFF - checksum == msgChecksum)
         {
           //msg ok : parse payload
@@ -144,17 +145,7 @@ void loop()
           }
           //construct sql query
           char sqlStmt[200];
-          sprintf(sqlStmt, "insert into events(msg_nr, mod_timestamp, data_seq, data_type, data) values (3, now(), 1, 'F', %f)", temperature.value);
-          if(mysql_query(pConn, sqlStmt))
-          {
-            printf("Failed to insert values into table events, try next one...\n");
-          }
-          sprintf(sqlStmt, "insert into events(msg_nr, mod_timestamp, data_seq, data_type, data) values (3, now(), 2, 'F', %f)", milliVolt.value);
-          if(mysql_query(pConn, sqlStmt))
-          {
-            printf("Failed to insert values into table events, try next one...\n");
-          }
-          sprintf(sqlStmt, "insert into events(msg_nr, mod_timestamp, data_seq, data_type, data) values (3, now(), 3, 'I', %hhu)", device);
+          sprintf(sqlStmt, "insert into eventLog(event_type, value_int1, value_float1, value_float2, mod_timestamp) values (1, %hhu, %f, %f, now())", device, milliVolt.value, temperature.value);
           if(mysql_query(pConn, sqlStmt))
           {
             printf("Failed to insert values into table events, try next one...\n");
@@ -162,6 +153,7 @@ void loop()
           mysql_close(pConn);
         }
       }
+      std::cout << std::endl;
     }
   }
   usleep(10000);
